@@ -25,12 +25,12 @@ const JuegosSchema = new Schema({
         apuestaMinima: {
         type: Number,
         required: true,
-        min: 0
+        
         },
         apuestaMaxima: {
         type: Number,
         required: true,
-        min: 1
+        
         }
         }, {
         timestamps: true
