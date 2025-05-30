@@ -17,49 +17,43 @@ registerClientController.registerClient = async (req, res) => {
     // Verificar si el cliente ya existe
     const existCliente = await clientesModel.findOne({ correo });
     if (existCliente) {
-      return res.json({ message: "Cliente ya existe" });
+      return res.status(400).json({ message: "Cliente ya existe" });
     }
 
     // Encriptar la contraseña
     const contraseñaHash = await bcryptjs.hash(contraseña, 10);
 
-    // Guardar en la base de datos
+    // Crear nuevo cliente
     const nuevoCliente = new clientesModel({
       nombreCompleto,
       correo,
       contraseña: contraseñaHash,
       edad,
       pais,
-      isVerified: false, // Aseguramos que empieza no verificado
+      isVerified: false,
     });
 
     await nuevoCliente.save();
 
-    //token
+    // Generar token
     jsonwebtoken.sign(
-        { id: newCustumer._id },
-        config.JWT.secret,
-        { expiresIn: config.JWT.expiresIn },
-        (error, token) => {
-            if (error) {
-                console.log("error " + error);
-                return res.status(500).json({ message: "Error generando token" });
-            }
-     
-            res.cookie("authToken", token);
-            return res.json({ message: "cliente guardado" });
+      { id: nuevoCliente._id },
+      config.JWT.secret,
+      { expiresIn: config.JWT.expiresIn },
+      (error, token) => {
+        if (error) {
+          console.error("Error al generar token:", error);
+          return res.status(500).json({ message: "Error generando token" });
         }
+
+        res.cookie("authToken", token);
+        return res.status(201).json({ message: "Cliente guardado", token });
+      }
     );
-     
-           
-           
-     
-     
-        } catch (error) {
-            res.json({message: "error"+error})
-            res.json({message: "Error saving employee"})
-     
-        }
-     }
+  } catch (error) {
+    console.error("Error en el servidor:", error);
+    return res.status(500).json({ message: "Error interno del servidor" });
+  }
+};
 
 export default registerClientController;
